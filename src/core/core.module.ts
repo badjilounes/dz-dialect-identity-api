@@ -9,5 +9,6 @@ import { AppWinstonModule } from './app-winston/app-winston.module';
   imports: [AppWinstonModule, AppDatabaseModule, ConfigModule.forRoot()],
   controllers: [],
   providers: [],
+  exports: [ConfigModule],
 })
 export class CoreModule {}

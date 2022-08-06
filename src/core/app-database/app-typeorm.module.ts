@@ -19,6 +19,9 @@ import { AppTypeormLogger } from './app-typeorm.logger';
         autoLoadEntities: true,
         synchronize: true,
         logger: new AppTypeormLogger(),
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
     }),
   ],

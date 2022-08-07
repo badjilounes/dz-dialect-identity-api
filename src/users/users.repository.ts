@@ -45,11 +45,15 @@ export class UsersRepository {
     return this.userRepository.save(toSave);
   }
 
-  async findOneByEmail(email: string): Promise<UserEntity | undefined> {
+  async findOneByEmail(email: string): Promise<UserEntity | null> {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async findOneByUsername(username: string): Promise<UserEntity | undefined> {
+  async findOneById(userId: string): Promise<UserEntity | null> {
+    return this.userRepository.findOne({ where: { id: userId } });
+  }
+
+  async findOneByUsername(username: string): Promise<UserEntity | null> {
     return this.userRepository.findOne({ where: { username } });
   }
 }

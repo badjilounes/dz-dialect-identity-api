@@ -4,6 +4,8 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt/jwt.guard';
+import { JwtStrategy } from './jwt/jwt.strategy';
 import { TwitterAuthClientService } from './providers/twitter/twitter-auth-provider.service';
 
 import { UsersModule } from 'src/users/users.module';
@@ -21,6 +23,6 @@ import { UsersModule } from 'src/users/users.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, TwitterAuthClientService],
+  providers: [AuthService, TwitterAuthClientService, JwtAuthGuard, JwtStrategy],
 })
 export class AuthModule {}

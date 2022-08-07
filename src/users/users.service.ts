@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { UserResponseDto } from './dto/user-response-dto';
 import { UserInformation } from './user-information';
 import { UserEntity } from './user.entity';
 import { UsersRepository } from './users.repository';
@@ -27,6 +28,25 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async findUserById(userId: string): Promise<UserResponseDto> {
+    const user = await this.usersRepository.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException("Cet utilisateur n'existe pas");
+    }
+
+    return {
+      id: user.id,
+      provider: user.provider,
+      username: user.username,
+      createdAt: user.createdAt,
+      name: user.name ?? undefined,
+      email: user.email ?? undefined,
+      externalId: user.externalId ?? undefined,
+      imageUrl: user.imageUrl ?? undefined,
+    };
   }
 
   async usernameExists(username: string): Promise<boolean> {

@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { ProvidersEnum } from 'src/auth/providers/providers.enum';
 
@@ -27,4 +27,10 @@ export class UserEntity {
 
   @Column({ nullable: true, default: null })
   imageUrl: string | null;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

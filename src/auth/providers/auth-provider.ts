@@ -1,8 +1,8 @@
+import { UserInformation } from 'src/users/user-information';
+
 export type UserProviderInformation = {
   id: string;
-  name: string;
-  username: string;
-  imageUrl: string;
+  information: UserInformation;
 };
 
 export interface AuthProvider {

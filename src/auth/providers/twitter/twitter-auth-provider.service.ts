@@ -35,9 +35,11 @@ export class TwitterAuthClientService implements AuthProvider {
 
     return {
       id: response.data.id,
-      username: response.data.username,
-      name: response.data.name,
-      imageUrl: response.data.profile_image_url,
+      information: {
+        username: response.data.username,
+        name: response.data.name,
+        imageUrl: response.data.profile_image_url,
+      },
     };
   }
 }

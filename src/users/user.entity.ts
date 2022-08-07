@@ -1,22 +1,30 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+import { ProvidersEnum } from 'src/auth/providers/providers.enum';
+
 @Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ nullable: true, unique: true, default: null })
   externalId: string | null;
 
-  @Column({ nullable: true })
-  provider: string | null;
+  @Column({ enum: ProvidersEnum, default: ProvidersEnum.Basic })
+  provider: ProvidersEnum;
 
-  @Column()
-  name: string;
+  @Column({ nullable: true, unique: true, default: null })
+  email: string | null;
 
-  @Column()
+  @Column({ nullable: true, default: null })
+  password: string | null;
+
+  @Column({ unique: true })
   username: string;
 
-  @Column()
-  imageUrl: string;
+  @Column({ nullable: true, default: null })
+  name: string | null;
+
+  @Column({ nullable: true, default: null })
+  imageUrl: string | null;
 }

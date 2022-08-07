@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Query, Redirect } from '@nestjs/com
 import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
+import { AuthProviderRedirectResponseDto } from './dto/auth-provider-redirect-response-dto';
 import { AuthSignInDto } from './dto/auth-sign-in-dto';
 import { AuthSignUpDto } from './dto/auth-sign-up-dto';
 import { AuthTokenResponseDto } from './dto/auth-sign-up-response-dto';
@@ -13,10 +14,9 @@ export class AuthController {
 
   @ApiOperation({ operationId: 'redirect-to-authorize-url', summary: 'Redirects user to provider authorize URL' })
   @Get(':providerName')
-  @Redirect()
   @ApiBadRequestResponse({ description: 'Provider not found' })
-  redirectToProviderAuthorizeURL(@Param('providerName') providerName: string) {
-    return { url: this.authenticationService.getAuthorizeURL(providerName), statusCode: 301 };
+  redirectToProviderAuthorizeURL(@Param('providerName') providerName: string): AuthProviderRedirectResponseDto {
+    return { url: this.authenticationService.getAuthorizeURL(providerName) };
   }
 
   @ApiOperation({ operationId: 'provider-callback', summary: 'Provider login callback' })

@@ -16,7 +16,7 @@ export class AuthController {
   @Redirect()
   @ApiBadRequestResponse({ description: 'Provider not found' })
   redirectToProviderAuthorizeURL(@Param('providerName') providerName: string) {
-    return { url: this.authenticationService.getAuthorizeURL(providerName), statusCode: 302 };
+    return { url: this.authenticationService.getAuthorizeURL(providerName), statusCode: 301 };
   }
 
   @ApiOperation({ operationId: 'provider-callback', summary: 'Provider login callback' })
@@ -26,7 +26,7 @@ export class AuthController {
   async providerCallback(@Param('providerName') providerName: string, @Query('code') code: string) {
     const url = await this.authenticationService.getRedirectURIFromCode(providerName, code);
 
-    return { url, statusCode: 302 };
+    return { url, statusCode: 301 };
   }
 
   @ApiOperation({ operationId: 'sign-up', summary: 'Sign up a new user' })

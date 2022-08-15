@@ -23,8 +23,12 @@ export class AuthController {
   @Get(':providerName/callback')
   @Redirect()
   @ApiBadRequestResponse({ description: 'Provider not found' })
-  async providerCallback(@Param('providerName') providerName: string, @Query('code') code: string) {
-    const url = await this.authenticationService.getRedirectURIFromCode(providerName, code);
+  async providerCallback(
+    @Param('providerName') providerName: string,
+    @Query('code') code?: string,
+    @Query('error') error?: string,
+  ) {
+    const url = await this.authenticationService.getRedirectURIFromCode(providerName, code, error);
 
     return { url, statusCode: 301 };
   }

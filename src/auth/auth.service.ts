@@ -31,7 +31,11 @@ export class AuthService {
     return this.resolveProviderFromName(providerName).authorizeUrl;
   }
 
-  async getRedirectURIFromCode(providerName: string, code: string) {
+  async getRedirectURIFromCode(providerName: string, code?: string, error?: string) {
+    if (error) {
+      return this.appCallbackURL;
+    }
+
     const provider = this.resolveProviderFromName(providerName);
 
     const userFromProvider: UserProviderInformation = await provider.getUserInformation(code);

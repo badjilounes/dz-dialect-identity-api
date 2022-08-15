@@ -15,6 +15,7 @@ import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class AuthService {
   private readonly appCallbackURL = this.configService.get('APP_CALLBACK_URL');
+  private readonly appSignInURL = this.configService.get('APP_SIGN_IN_URL');
 
   private readonly providers: Map<ProvidersEnum, AuthProvider> = new Map([
     [ProvidersEnum.Twitter, this.twitterAuthClient],
@@ -33,7 +34,7 @@ export class AuthService {
 
   async getRedirectURIFromCode(providerName: string, code?: string, error?: string) {
     if (error) {
-      return this.appCallbackURL;
+      return this.appSignInURL;
     }
 
     const provider = this.resolveProviderFromName(providerName);

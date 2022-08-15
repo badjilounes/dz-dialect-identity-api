@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt/jwt.guard';
 import { JwtStrategy } from './jwt/jwt.strategy';
+import { GoogleAuthProviderService } from './providers/google/google-auth-provider.service';
 import { TwitterAuthClientService } from './providers/twitter/twitter-auth-provider.service';
 
 import { UsersModule } from 'src/users/users.module';
@@ -23,6 +24,6 @@ import { UsersModule } from 'src/users/users.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, TwitterAuthClientService, JwtAuthGuard, JwtStrategy],
+  providers: [AuthService, TwitterAuthClientService, GoogleAuthProviderService, JwtAuthGuard, JwtStrategy],
 })
 export class AuthModule {}

@@ -6,6 +6,7 @@ import { AuthSignInDto } from './dto/auth-sign-in-dto';
 import { AuthSignUpDto } from './dto/auth-sign-up-dto';
 import { AuthTokenResponseDto } from './dto/auth-sign-up-response-dto';
 import { AuthProvider, UserProviderInformation } from './providers/auth-provider';
+import { GoogleAuthProviderService } from './providers/google/google-auth-provider.service';
 import { ProvidersEnum } from './providers/providers.enum';
 import { TwitterAuthClientService } from './providers/twitter/twitter-auth-provider.service';
 
@@ -17,13 +18,15 @@ export class AuthService {
   private readonly appCallbackURL = this.configService.get('APP_CALLBACK_URL');
   private readonly appSignInURL = this.configService.get('APP_SIGN_IN_URL');
 
-  private readonly providers: Map<ProvidersEnum, AuthProvider> = new Map([
+  private readonly providers: Map<ProvidersEnum, AuthProvider> = new Map<ProvidersEnum, AuthProvider>([
     [ProvidersEnum.Twitter, this.twitterAuthClient],
+    [ProvidersEnum.Google, this.googleAuthClient],
   ]);
 
   constructor(
     private readonly configService: ConfigService,
     private readonly twitterAuthClient: TwitterAuthClientService,
+    private readonly googleAuthClient: GoogleAuthProviderService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}

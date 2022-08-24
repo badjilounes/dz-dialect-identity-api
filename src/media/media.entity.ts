@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { UserEntity } from 'src/users/user.entity';
 
@@ -19,6 +19,6 @@ export class MediaEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @OneToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity)
   user: UserEntity;
 }

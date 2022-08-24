@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { UserResponseDto } from './dto/user-response-dto';
+import { UserExternalEntity } from './entities/user-external.entity';
+import { UserEntity } from './entities/user.entity';
 import { UserInformation } from './user-information';
-import { UserEntity } from './user.entity';
 import { UsersRepository } from './users.repository';
 
 import { ProvidersEnum } from 'src/auth/providers/providers.enum';
@@ -11,7 +14,11 @@ import { MediaService } from 'src/media/media.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepository: UsersRepository, private readonly mediaService: MediaService) {}
+  constructor(
+    @InjectRepository(UserExternalEntity) private readonly usersExternalRepository: Repository<UserExternalEntity>,
+    private readonly usersRepository: UsersRepository,
+    private readonly mediaService: MediaService,
+  ) {}
 
   async createProfilePictureMedia(
     userId: string,
@@ -31,20 +38,36 @@ export class UsersService {
   async createUser(provider: ProvidersEnum, user: UserInformation, externalId?: string): Promise<UserEntity> {
     if (provider === ProvidersEnum.Basic) {
       return this.usersRepository.createFromBasicProvider(user.username, user.password);
-    } else {
-      const username = await this.findUniqueUsername(user.username);
-      return this.usersRepository.createFromExternalProvider({ ...user, username }, externalId, provider);
     }
+
+    const existingExternalUser = await this.usersExternalRepository.findOne({
+      where: {
+        provider,
+        externalId,
+      },
+    });
+
+    const externalUserToSave = this.usersExternalRepository.create({
+      ...existingExternalUser,
+      ...user,
+      provider,
+      externalId,
+    });
+
+    await this.usersExternalRepository.save(externalUserToSave);
+
+    const username = await this.findUniqueUsername(user.username);
+    return this.usersRepository.createFromExternalProvider(username, externalId, provider);
   }
 
-  async findUser(username: string, password?: string): Promise<UserEntity | null> {
+  async findUser(username: string, password?: string): Promise<UserResponseDto | null> {
     const user = await this.usersRepository.findOneByUsername(username);
 
     if (user?.provider === ProvidersEnum.Basic && !this.usersRepository.checkPassword(user, password)) {
       return null;
     }
 
-    return user;
+    return this.getUserResponseDtoFromUser(user);
   }
 
   async findUserById(userId: string): Promise<UserResponseDto> {
@@ -54,20 +77,40 @@ export class UsersService {
       throw new NotFoundException("Cet utilisateur n'existe pas");
     }
 
-    return {
-      id: user.id,
-      provider: user.provider,
-      username: user.username,
-      createdAt: user.createdAt,
-      name: user.name ?? undefined,
-      email: user.email ?? undefined,
-      externalId: user.externalId ?? undefined,
-      imageUrl: user.imageUrl ?? undefined,
-    };
+    return this.getUserResponseDtoFromUser(user);
   }
 
   async usernameExists(username: string): Promise<boolean> {
     return !!(await this.usersRepository.findOneByUsername(username));
+  }
+
+  async updateProfilePicture(userId: string, imageUrl: string): Promise<void> {
+    const user = await this.usersRepository.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException("Cet utilisateur n'existe pas");
+    }
+
+    await this.usersRepository.updateImageUrl(userId, imageUrl);
+  }
+
+  private async getUserResponseDtoFromUser(user: UserEntity): Promise<UserResponseDto> {
+    const externalUser = await this.usersExternalRepository.findOne({
+      where: {
+        user: { id: user.id },
+      },
+    });
+
+    return {
+      id: user.id,
+      provider: user.provider,
+      externalId: user.externalId ?? undefined,
+      username: user.username,
+      createdAt: user.createdAt,
+      name: externalUser.name ?? user.name ?? undefined,
+      email: externalUser.email ?? user.email ?? undefined,
+      imageUrl: externalUser.imageUrl ?? user.imageUrl ?? undefined,
+    };
   }
 
   private async findUniqueUsername(username: string): Promise<string> {
@@ -80,15 +123,5 @@ export class UsersService {
     }
 
     return uniqueUsername;
-  }
-
-  async updateProfilePicture(userId: string, imageUrl: string): Promise<void> {
-    const user = await this.usersRepository.findOneById(userId);
-
-    if (!user) {
-      throw new NotFoundException("Cet utilisateur n'existe pas");
-    }
-
-    await this.usersRepository.updateImageUrl(userId, imageUrl);
   }
 }

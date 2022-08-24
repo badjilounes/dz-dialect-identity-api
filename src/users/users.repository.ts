@@ -4,8 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { compareSync, hashSync } from 'bcrypt';
 import { Repository } from 'typeorm';
 
-import { UserInformation } from './user-information';
-import { UserEntity } from './user.entity';
+import { UserEntity } from './entities/user.entity';
 
 import { ProvidersEnum } from 'src/auth/providers/providers.enum';
 
@@ -28,11 +27,7 @@ export class UsersRepository {
     });
   }
 
-  async createFromExternalProvider(
-    user: UserInformation,
-    externalId: string,
-    provider: ProvidersEnum,
-  ): Promise<UserEntity> {
+  async createFromExternalProvider(username: string, externalId: string, provider: ProvidersEnum): Promise<UserEntity> {
     const existing = await this.userRepository.findOne({
       where: {
         provider,
@@ -40,7 +35,7 @@ export class UsersRepository {
       },
     });
 
-    const toSave = this.userRepository.create({ ...existing, ...user, provider, externalId });
+    const toSave = this.userRepository.create({ ...existing, username, provider, externalId });
 
     return this.userRepository.save(toSave);
   }

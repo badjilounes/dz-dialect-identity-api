@@ -1,24 +1,39 @@
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Logger as TypeormLogger } from 'typeorm';
 
 export class AppTypeormLogger implements TypeormLogger {
   logger = new Logger('Typeorm');
 
+  private readonly logLevel = this.configService.get('TYPEORM_LOGGING');
+
+  constructor(private readonly configService: ConfigService) {}
+
   logQuery(query: string, parameters?: any[]) {
-    this.logger.debug(`[QUERY] ${this.queryToString(query, parameters)}`);
+    if (this.logLevel === 'all' || this.logLevel === 'query') {
+      this.logger.debug(`[QUERY] ${this.queryToString(query, parameters)}`);
+    }
   }
 
   logQueryError(error: string, query: string, parameters?: any[]) {
-    this.logger.error(`[QUERY-ERROR] ${error} -- ${this.queryToString(query, parameters)}`);
+    if (this.logLevel === 'all' || this.logLevel === 'error') {
+      this.logger.error(`[QUERY-ERROR] ${error} -- ${this.queryToString(query, parameters)}`);
+    }
   }
   logQuerySlow(time: number, query: string, parameters?: any[]) {
-    this.logger.warn(`[QUERY-SLOW] ${time}ms -- ${this.queryToString(query, parameters)}`);
+    if (this.logLevel === 'all' || this.logLevel === 'query') {
+      this.logger.warn(`[QUERY-SLOW] ${time}ms -- ${this.queryToString(query, parameters)}`);
+    }
   }
   logSchemaBuild(message: string) {
-    this.logger.verbose(`[SCHEMA-BUILD] ${message}`);
+    if (this.logLevel === 'all' || this.logLevel === 'schema') {
+      this.logger.verbose(`[SCHEMA-BUILD] ${message}`);
+    }
   }
   logMigration(message: string) {
-    this.logger.verbose(`[MIGRATION] ${message}`);
+    if (this.logLevel === 'all' || this.logLevel === 'query') {
+      this.logger.verbose(`[MIGRATION] ${message}`);
+    }
   }
 
   log(level: 'log' | 'info' | 'warn', message: any) {

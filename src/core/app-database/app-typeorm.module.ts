@@ -18,7 +18,7 @@ import { AppTypeormLogger } from './app-typeorm.logger';
         url: configService.get('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: true,
-        logger: new AppTypeormLogger(),
+        logger: new AppTypeormLogger(configService),
         ssl: configService.get('DATABASE_SSL_STRICT') ? { rejectUnauthorized: false } : false,
       }),
     }),

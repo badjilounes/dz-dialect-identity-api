@@ -56,7 +56,7 @@ export class UsersController {
     @UserId() userId: string,
   ): Promise<MediaResponseDto> {
     const { buffer, mimetype, originalname } = file;
-    return this.usersService.createProfilePictureMedia(userId, buffer, mimetype, originalname);
+    return this.usersService.createUserImage(userId, buffer, mimetype, originalname);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -68,6 +68,6 @@ export class UsersController {
   })
   @ApiOkResponse({ status: 200, description: 'User profile picture updated' })
   updateProfilePicture(@UserId() userId: string, @Body() body: UpdateProfilePictureDto): Promise<void> {
-    return this.usersService.updateProfilePicture(userId, body.url);
+    return this.usersService.updateImageUrl(userId, body.url);
   }
 }

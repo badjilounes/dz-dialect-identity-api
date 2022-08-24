@@ -55,7 +55,7 @@ export class AuthService {
   }
 
   async signIn(user: AuthSignInDto): Promise<AuthTokenResponseDto> {
-    const found = await this.usersService.findUser(user.username, user.password);
+    const found = await this.usersService.checkUser(user.username, user.password);
 
     if (!found) {
       throw new UnauthorizedException('Nom de compte ou mot de passe invalide');

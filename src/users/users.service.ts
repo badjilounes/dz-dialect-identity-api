@@ -20,21 +20,6 @@ export class UsersService {
     private readonly mediaService: MediaService,
   ) {}
 
-  async createProfilePictureMedia(
-    userId: string,
-    buffer: Buffer,
-    mimetype: string,
-    originalname: string,
-  ): Promise<MediaResponseDto> {
-    const user = await this.usersRepository.findOneById(userId);
-
-    if (!user) {
-      throw new NotFoundException("Cet utilisateur n'existe pas");
-    }
-
-    return this.mediaService.create(userId, buffer, mimetype, originalname);
-  }
-
   async createUser(provider: ProvidersEnum, user: UserInformation, externalId?: string): Promise<UserEntity> {
     if (provider === ProvidersEnum.Basic) {
       return this.usersRepository.createFromBasicProvider(user.username, user.password);
@@ -56,11 +41,26 @@ export class UsersService {
 
     await this.usersExternalRepository.save(externalUserToSave);
 
-    const username = await this.findUniqueUsername(user.username);
+    const username = await this.buildUniqueUsername(user.username);
     return this.usersRepository.createFromExternalProvider(username, externalId, provider);
   }
 
-  async findUser(username: string, password?: string): Promise<UserResponseDto | null> {
+  async createUserImage(
+    userId: string,
+    buffer: Buffer,
+    mimetype: string,
+    originalname: string,
+  ): Promise<MediaResponseDto> {
+    const user = await this.usersRepository.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException("Cet utilisateur n'existe pas");
+    }
+
+    return this.mediaService.create(userId, buffer, mimetype, originalname);
+  }
+
+  async checkUser(username: string, password?: string): Promise<UserResponseDto | null> {
     const user = await this.usersRepository.findOneByUsername(username);
 
     if (user?.provider === ProvidersEnum.Basic && !this.usersRepository.checkPassword(user, password)) {
@@ -80,11 +80,7 @@ export class UsersService {
     return this.getUserResponseDtoFromUser(user);
   }
 
-  async usernameExists(username: string): Promise<boolean> {
-    return !!(await this.usersRepository.findOneByUsername(username));
-  }
-
-  async updateProfilePicture(userId: string, imageUrl: string): Promise<void> {
+  async updateImageUrl(userId: string, imageUrl: string): Promise<void> {
     const user = await this.usersRepository.findOneById(userId);
 
     if (!user) {
@@ -92,6 +88,22 @@ export class UsersService {
     }
 
     await this.usersRepository.updateImageUrl(userId, imageUrl);
+  }
+
+  async usernameExists(username: string): Promise<boolean> {
+    return !!(await this.usersRepository.findOneByUsername(username));
+  }
+
+  private async buildUniqueUsername(username: string): Promise<string> {
+    let uniqueUsername = username;
+    let i = 1;
+    // eslint-disable-next-line no-await-in-loop
+    while (await this.usersRepository.findOneByUsername(uniqueUsername)) {
+      uniqueUsername = `${username}${i}`;
+      i++;
+    }
+
+    return uniqueUsername;
   }
 
   private async getUserResponseDtoFromUser(user: UserEntity): Promise<UserResponseDto> {
@@ -111,17 +123,5 @@ export class UsersService {
       email: externalUser.email ?? user.email ?? undefined,
       imageUrl: externalUser.imageUrl ?? user.imageUrl ?? undefined,
     };
-  }
-
-  private async findUniqueUsername(username: string): Promise<string> {
-    let uniqueUsername = username;
-    let i = 1;
-    // eslint-disable-next-line no-await-in-loop
-    while (await this.usersRepository.findOneByUsername(uniqueUsername)) {
-      uniqueUsername = `${username}${i}`;
-      i++;
-    }
-
-    return uniqueUsername;
   }
 }

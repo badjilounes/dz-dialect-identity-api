@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 import { UserExternalEntity } from './user-external.entity';
 
@@ -8,6 +16,7 @@ export class UserEntity {
   id: string;
 
   @OneToOne(() => UserExternalEntity, { eager: true })
+  @JoinColumn()
   userExternal: UserExternalEntity | null;
 
   @Column({ nullable: true, unique: true, default: null })

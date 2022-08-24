@@ -6,10 +6,27 @@ import { UserEntity } from './user.entity';
 import { UsersRepository } from './users.repository';
 
 import { ProvidersEnum } from 'src/auth/providers/providers.enum';
+import { MediaResponseDto } from 'src/media/dto/media-response-dto';
+import { MediaService } from 'src/media/media.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(private readonly usersRepository: UsersRepository, private readonly mediaService: MediaService) {}
+
+  async createProfilePictureMedia(
+    userId: string,
+    buffer: Buffer,
+    mimetype: string,
+    originalname: string,
+  ): Promise<MediaResponseDto> {
+    const user = await this.usersRepository.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException("Cet utilisateur n'existe pas");
+    }
+
+    return this.mediaService.create(userId, buffer, mimetype, originalname);
+  }
 
   async createUser(provider: ProvidersEnum, user: UserInformation, externalId?: string): Promise<UserEntity> {
     if (provider === ProvidersEnum.Basic) {

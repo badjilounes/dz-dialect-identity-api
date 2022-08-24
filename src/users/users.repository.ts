@@ -56,4 +56,8 @@ export class UsersRepository {
   async findOneByUsername(username: string): Promise<UserEntity | null> {
     return this.userRepository.findOne({ where: { username } });
   }
+
+  updateImageUrl(userId: string, imageUrl: string): Promise<UserEntity> {
+    return this.userRepository.save({ id: userId, imageUrl });
+  }
 }

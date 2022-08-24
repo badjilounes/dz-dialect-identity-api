@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
@@ -10,6 +10,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { UpdateProfilePictureDto } from './dto/update-profile-picture-dto';
 import { UserResponseDto } from './dto/user-response-dto';
 import { UsersService } from './users.service';
 
@@ -39,7 +40,9 @@ export class UsersController {
     return this.usersService.findUserById(userId);
   }
 
-  @Post(':id/profile-picture')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('create-profile-picture')
   @ApiOperation({
     summary: 'Create a profile picture media for a user',
     operationId: 'createProfilePictureMedia',
@@ -50,9 +53,21 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('file'))
   createProfilePictureMedia(
     @UploadedFile() file: Express.Multer.File,
-    @Param('id') userId: string,
+    @UserId() userId: string,
   ): Promise<MediaResponseDto> {
     const { buffer, mimetype, originalname } = file;
     return this.usersService.createProfilePictureMedia(userId, buffer, mimetype, originalname);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('picture')
+  @ApiOperation({
+    summary: 'Update user profile picture',
+    operationId: 'updateProfilePicture',
+  })
+  @ApiOkResponse({ status: 200, description: 'User profile picture updated' })
+  updateProfilePicture(@UserId() userId: string, @Body() body: UpdateProfilePictureDto): Promise<void> {
+    return this.usersService.updateProfilePicture(userId, body.url);
   }
 }

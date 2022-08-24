@@ -81,4 +81,14 @@ export class UsersService {
 
     return uniqueUsername;
   }
+
+  async updateProfilePicture(userId: string, imageUrl: string): Promise<void> {
+    const user = await this.usersRepository.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException("Cet utilisateur n'existe pas");
+    }
+
+    await this.usersRepository.updateImageUrl(userId, imageUrl);
+  }
 }

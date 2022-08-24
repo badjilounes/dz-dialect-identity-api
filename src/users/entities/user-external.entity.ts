@@ -1,6 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-
-import { UserEntity } from './user.entity';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { ProvidersEnum } from 'src/auth/providers/providers.enum';
 
@@ -32,7 +30,4 @@ export class UserExternalEntity {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @OneToOne(() => UserEntity)
-  user: UserEntity;
 }

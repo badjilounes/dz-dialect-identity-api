@@ -25,25 +25,25 @@ export class UsersService {
       return this.usersRepository.createFromBasicProvider(user.username, user.password);
     }
 
-    const username = await this.buildUniqueUsername(user.username);
-    const createdUser = await this.usersRepository.createFromExternalProvider(username, externalId, provider);
-
-    const existingExternalUser = await this.usersExternalRepository.findOne({
+    const existingUserExternal = await this.usersExternalRepository.findOne({
       where: {
         provider,
         externalId,
       },
     });
 
-    const externalUserToSave = this.usersExternalRepository.create({
-      ...existingExternalUser,
-      ...user,
-      provider,
-      externalId,
-      user: createdUser,
-    });
+    let createdUser: UserEntity;
 
-    await this.usersExternalRepository.save(externalUserToSave);
+    if (existingUserExternal) {
+      // Update user external entity
+      await this.usersExternalRepository.update(existingUserExternal.id, user);
+      createdUser = await this.usersRepository.findOneByUserExternalId(existingUserExternal.id);
+    } else {
+      // create user with external entity
+      const userExternal = await this.usersExternalRepository.save({ provider, externalId, ...user });
+      const username = await this.buildUniqueUsername(user.username);
+      createdUser = await this.usersRepository.createFromExternalProvider(username, userExternal);
+    }
 
     return createdUser;
   }
@@ -66,7 +66,7 @@ export class UsersService {
   async checkUser(username: string, password?: string): Promise<UserResponseDto | null> {
     const user = await this.usersRepository.findOneByUsername(username);
 
-    if (user?.provider === ProvidersEnum.Basic && !this.usersRepository.checkPassword(user, password)) {
+    if (!user.userExternal && !this.usersRepository.checkPassword(user, password)) {
       return null;
     }
 
@@ -109,22 +109,18 @@ export class UsersService {
     return uniqueUsername;
   }
 
-  private async getUserResponseDtoFromUser(user: UserEntity): Promise<UserResponseDto> {
-    const externalUser = await this.usersExternalRepository.findOne({
-      where: {
-        user: { id: user.id },
-      },
-    });
+  private getUserResponseDtoFromUser(user: UserEntity): UserResponseDto {
+    const external = user.userExternal;
 
     return {
       id: user.id,
-      provider: user.provider,
-      externalId: user.externalId ?? undefined,
+      provider: external?.provider ?? ProvidersEnum.Basic,
+      externalId: external?.externalId ?? undefined,
       username: user.username,
       createdAt: user.createdAt,
-      name: externalUser.name ?? user.name ?? undefined,
-      email: externalUser.email ?? user.email ?? undefined,
-      imageUrl: externalUser.imageUrl ?? user.imageUrl ?? undefined,
+      name: external?.name ?? user.name ?? undefined,
+      email: external?.email ?? user.email ?? undefined,
+      imageUrl: external?.imageUrl ?? user.imageUrl ?? undefined,
     };
   }
 }

@@ -1,17 +1,14 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { ProvidersEnum } from 'src/auth/providers/providers.enum';
+import { UserExternalEntity } from './user-external.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true, unique: true, default: null })
-  externalId: string | null;
-
-  @Column({ enum: ProvidersEnum, default: ProvidersEnum.Basic })
-  provider: ProvidersEnum;
+  @OneToOne(() => UserExternalEntity, { eager: true })
+  userExternal: UserExternalEntity | null;
 
   @Column({ nullable: true, unique: true, default: null })
   email: string | null;

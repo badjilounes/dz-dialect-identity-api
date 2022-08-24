@@ -110,17 +110,31 @@ export class UsersService {
   }
 
   private getUserResponseDtoFromUser(user: UserEntity): UserResponseDto {
-    const external = user.userExternal;
-
-    return {
+    const response: UserResponseDto = {
       id: user.id,
-      provider: external?.provider ?? ProvidersEnum.Basic,
-      externalId: external?.externalId ?? undefined,
+      externalId: undefined,
+      provider: ProvidersEnum.Basic,
       username: user.username,
       createdAt: user.createdAt,
-      name: external?.name ?? user.name ?? undefined,
-      email: external?.email ?? user.email ?? undefined,
-      imageUrl: external?.imageUrl ?? user.imageUrl ?? undefined,
+      name: user.name,
+      email: user.email,
+      imageUrl: user.imageUrl,
     };
+
+    const external = user.userExternal;
+
+    if (external) {
+      response.provider = external.provider;
+      response.externalId = external.externalId;
+      response.name = response.name ?? external.name;
+      response.email = response.email ?? external.email;
+      response.imageUrl = response.imageUrl ?? external.imageUrl;
+    }
+
+    response.name = response.name ?? undefined;
+    response.email = response.email ?? undefined;
+    response.imageUrl = response.imageUrl ?? undefined;
+
+    return response;
   }
 }

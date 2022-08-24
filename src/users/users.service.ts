@@ -25,6 +25,9 @@ export class UsersService {
       return this.usersRepository.createFromBasicProvider(user.username, user.password);
     }
 
+    const username = await this.buildUniqueUsername(user.username);
+    const createdUser = await this.usersRepository.createFromExternalProvider(username, externalId, provider);
+
     const existingExternalUser = await this.usersExternalRepository.findOne({
       where: {
         provider,
@@ -37,12 +40,12 @@ export class UsersService {
       ...user,
       provider,
       externalId,
+      user: createdUser,
     });
 
     await this.usersExternalRepository.save(externalUserToSave);
 
-    const username = await this.buildUniqueUsername(user.username);
-    return this.usersRepository.createFromExternalProvider(username, externalId, provider);
+    return createdUser;
   }
 
   async createUserImage(

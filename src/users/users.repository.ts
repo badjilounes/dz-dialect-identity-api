@@ -26,8 +26,8 @@ export class UsersRepository {
     });
   }
 
-  createFromExternalProvider(username: string, externalUser: UserExternalEntity): Promise<UserEntity> {
-    return this.userRepository.save({ username, externalUser });
+  createFromExternalProvider(username: string, userExternal: UserExternalEntity): Promise<UserEntity> {
+    return this.userRepository.save({ username, userExternal });
   }
 
   findOneByEmail(email: string): Promise<UserEntity | null> {

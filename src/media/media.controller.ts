@@ -2,16 +2,12 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiDefaultResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Param, Res } from '@nestjs/common';
+import { ApiDefaultResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
 import { MediaService } from './media.service';
 
-import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
-
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 @ApiTags('media')
 @Controller('media')
 export class MediaController {

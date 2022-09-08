@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compareSync, hashSync } from 'bcrypt';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 
 import { UserExternalEntity } from './entities/user-external.entity';
 import { UserEntity } from './entities/user.entity';
@@ -42,8 +42,14 @@ export class UsersRepository {
     return this.userRepository.findOne({ where: { username } });
   }
 
-  updateImageUrl(userId: string, imageUrl: string): Promise<UserEntity> {
-    return this.userRepository.save({ id: userId, imageUrl });
+  findOneByEmailExcept(email: string, userId?: string) {
+    return userId ? this.userRepository.findOne({ where: { email, id: Not(userId) } }) : this.findOneByEmail(email);
+  }
+
+  findOneByUsernameExcept(username: string, userId?: string) {
+    return userId
+      ? this.userRepository.findOne({ where: { username, id: Not(userId) } })
+      : this.findOneByUsername(username);
   }
 
   findOneByUserExternalId(userExternalId: string): Promise<UserEntity | null> {
@@ -52,5 +58,21 @@ export class UsersRepository {
         userExternal: { id: userExternalId },
       },
     });
+  }
+
+  updateEmail(userId: string, email: string): Promise<UserEntity> {
+    return this.userRepository.save({ id: userId, email });
+  }
+
+  updateImageUrl(userId: string, imageUrl: string): Promise<UserEntity> {
+    return this.userRepository.save({ id: userId, imageUrl });
+  }
+
+  updateName(userId: string, name: string): Promise<UserEntity> {
+    return this.userRepository.save({ id: userId, name });
+  }
+
+  updateUsername(userId: string, username: string): Promise<UserEntity> {
+    return this.userRepository.save({ id: userId, username });
   }
 }

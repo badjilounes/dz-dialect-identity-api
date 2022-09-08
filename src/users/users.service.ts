@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -93,8 +93,50 @@ export class UsersService {
     await this.usersRepository.updateImageUrl(userId, imageUrl);
   }
 
-  async usernameExists(username: string): Promise<boolean> {
-    return !!(await this.usersRepository.findOneByUsername(username));
+  async updateEmail(userId: string, email: string): Promise<UserResponseDto> {
+    const user = await this.usersRepository.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException("Cet utilisateur n'existe pas");
+    }
+
+    const update = await this.usersRepository.updateEmail(userId, email);
+    return this.getUserResponseDtoFromUser(update);
+  }
+
+  async updateName(userId: string, name: string): Promise<UserResponseDto> {
+    const user = await this.usersRepository.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException("Cet utilisateur n'existe pas");
+    }
+
+    const update = await this.usersRepository.updateName(userId, name);
+    return this.getUserResponseDtoFromUser(update);
+  }
+
+  async updateUsername(userId: string, username: string): Promise<UserResponseDto> {
+    const user = await this.usersRepository.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException("Cet utilisateur n'existe pas");
+    }
+
+    const usernameExists = await this.usernameExists(username, userId);
+    if (usernameExists) {
+      throw new BadRequestException("Ce nom d'utilisateur est déjà utilisé");
+    }
+
+    const update = await this.usersRepository.updateUsername(userId, username);
+    return this.getUserResponseDtoFromUser(update);
+  }
+
+  async emailExists(email: string, userId?: string): Promise<boolean> {
+    return !!(await this.usersRepository.findOneByEmailExcept(email, userId));
+  }
+
+  async usernameExists(username: string, userId?: string): Promise<boolean> {
+    return !!(await this.usersRepository.findOneByUsernameExcept(username, userId));
   }
 
   private async buildUniqueUsername(username: string): Promise<string> {

@@ -30,6 +30,13 @@ export class UsersRepository {
     return this.userRepository.save({ username, userExternal });
   }
 
+  paginate(skip: number, take: number): Promise<[UserEntity[], number]> {
+    return this.userRepository.findAndCount({
+      skip,
+      take,
+    });
+  }
+
   findOneByEmail(email: string): Promise<UserEntity | null> {
     return this.userRepository.findOne({ where: { email } });
   }
@@ -74,5 +81,9 @@ export class UsersRepository {
 
   updateUsername(userId: string, username: string): Promise<UserEntity> {
     return this.userRepository.save({ id: userId, username });
+  }
+
+  updateAdmin(userId: string, isAdmin: boolean): Promise<UserEntity> {
+    return this.userRepository.save({ id: userId, isAdmin });
   }
 }

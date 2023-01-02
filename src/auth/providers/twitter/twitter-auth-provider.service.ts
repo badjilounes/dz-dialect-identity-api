@@ -13,6 +13,13 @@ export class TwitterAuthClientService implements AuthProvider {
     scopes: ['tweet.read', 'users.read', 'offline.access'],
   });
 
+  private readonly adminAuthClient = new auth.OAuth2User({
+    client_id: this.configService.get('TWITTER_CLIENT_ID'),
+    client_secret: this.configService.get('TWITTER_CLIENT_SECRET'),
+    callback: this.configService.get('ADMIN_TWITTER_REDIRECT_URI'),
+    scopes: ['tweet.read', 'users.read', 'offline.access'],
+  });
+
   private readonly twitterClient = new Client(this.authClient);
 
   get authorizeUrl(): string {
@@ -23,10 +30,36 @@ export class TwitterAuthClientService implements AuthProvider {
     });
   }
 
+  get adminAuthorizeUrl(): string {
+    return this.adminAuthClient.generateAuthURL({
+      state: this.configService.get('TWITTER_STATE'),
+      code_challenge: this.configService.get('TWITTER_CODE_CHALLENGE'),
+      code_challenge_method: this.configService.get('TWITTER_CODE_CHALLENGE_METHOD'),
+    });
+  }
+
   constructor(private readonly configService: ConfigService) {}
 
   async getUserInformation(code: string): Promise<UserProviderInformation> {
     await this.authClient.requestAccessToken(code);
+
+    const response = await this.twitterClient.users.findMyUser(
+      { 'user.fields': ['profile_image_url'] },
+      { auth: this.authClient },
+    );
+
+    return {
+      id: response.data.id,
+      information: {
+        username: response.data.username,
+        name: response.data.name,
+        imageUrl: response.data.profile_image_url,
+      },
+    };
+  }
+
+  async getAdminUserInformation(code: string): Promise<UserProviderInformation> {
+    await this.adminAuthClient.requestAccessToken(code);
 
     const response = await this.twitterClient.users.findMyUser(
       { 'user.fields': ['profile_image_url'] },

@@ -34,6 +34,9 @@ export class UserEntity {
   @Column({ nullable: true, default: null })
   imageUrl: string | null;
 
+  @Column({ default: false })
+  isAdmin: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

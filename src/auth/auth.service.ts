@@ -15,6 +15,8 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
+  private readonly adminAppCallbackURL = this.configService.get('ADMIN_APP_CALLBACK_URL');
+  private readonly adminAppSignInURL = this.configService.get('ADMIN_APP_SIGN_IN_URL');
   private readonly appCallbackURL = this.configService.get('APP_CALLBACK_URL');
   private readonly appSignInURL = this.configService.get('APP_SIGN_IN_URL');
 
@@ -35,6 +37,31 @@ export class AuthService {
     return this.resolveProviderFromName(providerName).authorizeUrl;
   }
 
+  getAdminAuthorizeURL(providerName: string) {
+    return this.resolveProviderFromName(providerName).adminAuthorizeUrl;
+  }
+
+  async getAdminRedirectURIFromCode(providerName: string, code?: string, error?: string) {
+    if (error) {
+      return this.adminAppSignInURL;
+    }
+
+    const provider = this.resolveProviderFromName(providerName);
+    const userFromProvider: UserProviderInformation = await provider.getAdminUserInformation(code);
+
+    const existingUserExternal = await this.usersService.checkExternalUser(
+      providerName as ProvidersEnum,
+      userFromProvider.id,
+    );
+
+    if (!existingUserExternal) {
+      throw new UnauthorizedException("Vous n'êtes pas autorisé à vous connecter");
+    }
+
+    const accessToken = this.jwtService.sign({ id: existingUserExternal.id });
+    return `${this.adminAppCallbackURL}?access_token=${accessToken}`;
+  }
+
   async getRedirectURIFromCode(providerName: string, code?: string, error?: string) {
     if (error) {
       return this.appSignInURL;
@@ -50,7 +77,6 @@ export class AuthService {
     );
 
     const accessToken = this.jwtService.sign({ id: user.id });
-
     return `${this.appCallbackURL}?access_token=${accessToken}`;
   }
 
@@ -87,5 +113,18 @@ export class AuthService {
     }
 
     return provider;
+  }
+
+  private async getAccessTokenFromCode(providerName: string, code?: string) {
+    const provider = this.resolveProviderFromName(providerName);
+
+    const userFromProvider: UserProviderInformation = await provider.getUserInformation(code);
+    const user = await this.usersService.createUser(
+      providerName as ProvidersEnum,
+      userFromProvider.information,
+      userFromProvider.id,
+    );
+
+    return this.jwtService.sign({ id: user.id });
   }
 }

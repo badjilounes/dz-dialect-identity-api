@@ -7,5 +7,7 @@ export type UserProviderInformation = {
 
 export interface AuthProvider {
   authorizeUrl: string;
+  adminAuthorizeUrl: string;
   getUserInformation: (code: string) => Promise<UserProviderInformation>;
+  getAdminUserInformation: (code: string) => Promise<UserProviderInformation>;
 }

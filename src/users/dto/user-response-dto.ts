@@ -10,6 +10,9 @@ export class UserResponseDto {
   username: string;
 
   @ApiProperty()
+  isAdmin: boolean;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty({ type: String })

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
@@ -19,9 +19,13 @@ import { UsersService } from './users.service';
 
 import { JwtAuthPassThroughGuard } from 'src/auth/jwt/jwt-auth-pass-through.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
+import { AdminGuard } from 'src/core/admin/admin.guard';
 import { UserId } from 'src/core/user-id/user-id.decorator';
 import { MediaResponseDto } from 'src/media/dto/media-response-dto';
 import { MediaUploadDto } from 'src/media/dto/media-upload-dto';
+import { GetAllUsersDto } from 'src/users/dto/get-all-users-dto';
+import { PaginatedUserResponseDto } from 'src/users/dto/paginated-user-response-dto';
+import { UpdateAdminDto } from 'src/users/dto/update-admin-dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -120,5 +124,26 @@ export class UsersController {
   @ApiOkResponse({ status: 200, description: 'User email updated', type: UserResponseDto })
   updateEmail(@UserId() userId: string, @Body() body: UpdateEmailDto): Promise<UserResponseDto> {
     return this.usersService.updateEmail(userId, body.email);
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ operationId: 'get-all', summary: 'Get all users' })
+  @Get()
+  @ApiOkResponse({ type: PaginatedUserResponseDto })
+  getAll(@Query() payload: GetAllUsersDto): Promise<PaginatedUserResponseDto> {
+    return this.usersService.getAll(payload.pageIndex, payload.pageSize);
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Post('is-admin')
+  @ApiOperation({
+    summary: 'Update if user is admin',
+    operationId: 'updateAdmin',
+  })
+  @ApiOkResponse({ status: 200, description: 'User if user is admin' })
+  updateadmin(@Body() body: UpdateAdminDto): Promise<void> {
+    return this.usersService.updateAdmin(body.userId, body.isAdmin);
   }
 }

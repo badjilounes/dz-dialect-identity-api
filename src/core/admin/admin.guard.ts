@@ -18,12 +18,12 @@ export class AdminGuard extends JwtAuthPassThroughGuard {
     const request = context.switchToHttp().getRequest();
     const userId = request?.user?.userId;
     if (!userId) {
-      throw new UnauthorizedException('user is not authenticated');
+      throw new UnauthorizedException("Vous n'êtes pas authentifié");
     }
 
     const user = await this.usersService.findUserById(userId);
     if (!user.isAdmin) {
-      throw new UnauthorizedException('user is not admin');
+      throw new UnauthorizedException("Vous n'avez pas les droits d'administration");
     }
 
     return true;

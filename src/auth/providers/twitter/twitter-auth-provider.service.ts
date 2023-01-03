@@ -63,7 +63,7 @@ export class TwitterAuthClientService implements AuthProvider {
 
     const response = await this.twitterClient.users.findMyUser(
       { 'user.fields': ['profile_image_url'] },
-      { auth: this.authClient },
+      { auth: this.adminAuthClient },
     );
 
     return {

@@ -11,7 +11,6 @@ import { UsersRepository } from './users.repository';
 import { ProvidersEnum } from 'src/auth/providers/providers.enum';
 import { MediaResponseDto } from 'src/media/dto/media-response-dto';
 import { MediaService } from 'src/media/media.service';
-import { PaginatedUserResponseDto } from 'src/users/dto/paginated-user-response-dto';
 
 @Injectable()
 export class UsersService {
@@ -20,17 +19,6 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly mediaService: MediaService,
   ) {}
-
-  async getAll(pageIndex: number, pageSize: number): Promise<PaginatedUserResponseDto> {
-    const [entities, length] = await this.usersRepository.paginate(pageIndex * pageSize, pageSize);
-
-    return {
-      elements: entities.map((user) => this.getUserResponseDtoFromUser(user)),
-      length,
-      pageIndex,
-      pageSize,
-    };
-  }
 
   async createUser(provider: ProvidersEnum, user: UserInformation, externalId?: string): Promise<UserEntity> {
     if (provider === ProvidersEnum.Basic) {
@@ -169,16 +157,6 @@ export class UsersService {
 
   async usernameExists(username: string, userId?: string): Promise<boolean> {
     return !!(await this.usersRepository.findOneByUsernameExcept(username, userId));
-  }
-
-  async updateAdmin(userId: string, isAdmin: boolean): Promise<void> {
-    const user = await this.usersRepository.findOneById(userId);
-
-    if (!user) {
-      throw new NotFoundException("Cet utilisateur n'existe pas");
-    }
-
-    await this.usersRepository.updateAdmin(userId, isAdmin);
   }
 
   private async buildUniqueUsername(username: string): Promise<string> {

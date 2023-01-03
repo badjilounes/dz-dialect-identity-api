@@ -48,35 +48,4 @@ export class AuthController {
   signIn(@Body() user: AuthSignInDto): Promise<AuthTokenResponseDto> {
     return this.authenticationService.signIn(user);
   }
-
-  @ApiOperation({
-    operationId: 'admin-redirect-to-authorize-url',
-    summary: 'Redirects admin to provider authorize URL',
-  })
-  @Get('admin/:providerName')
-  @ApiBadRequestResponse({ description: 'Provider not found' })
-  adminRedirectToProviderAuthorizeURL(@Param('providerName') providerName: string): AuthProviderRedirectResponseDto {
-    return { url: this.authenticationService.getAdminAuthorizeURL(providerName) };
-  }
-
-  @ApiOperation({ operationId: 'admin-provider-callback', summary: 'Provider login callback' })
-  @Get('admin/:providerName/callback')
-  @Redirect()
-  @ApiBadRequestResponse({ description: 'Provider not found' })
-  async adminProviderCallback(
-    @Param('providerName') providerName: string,
-    @Query('code') code?: string,
-    @Query('error') error?: string,
-  ) {
-    const url = await this.authenticationService.getAdminRedirectURIFromCode(providerName, code, error);
-    return { url, statusCode: 301 };
-  }
-
-  @ApiOperation({ operationId: 'admin-sign-in', summary: 'Sign in admin' })
-  @Post('admin/sign-in')
-  @ApiBadRequestResponse({ description: 'Invalid credentials' })
-  @ApiOkResponse({ type: AuthTokenResponseDto })
-  adminSignIn(@Body() user: AuthSignInDto): Promise<AuthTokenResponseDto> {
-    return this.authenticationService.signIn(user);
-  }
 }

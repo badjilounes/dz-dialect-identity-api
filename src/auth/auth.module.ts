@@ -10,6 +10,8 @@ import { JwtStrategy } from './jwt/jwt.strategy';
 import { GoogleAuthProviderService } from './providers/google/google-auth-provider.service';
 import { TwitterAuthClientService } from './providers/twitter/twitter-auth-provider.service';
 
+import { AuthAdminController } from 'src/auth/auth-admin.controller';
+import { AuthAdminService } from 'src/auth/auth-admin.service';
 import { UsersModule } from 'src/users/users.module';
 
 @Module({
@@ -24,9 +26,10 @@ import { UsersModule } from 'src/users/users.module';
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, AuthAdminController],
   providers: [
     AuthService,
+    AuthAdminService,
     TwitterAuthClientService,
     GoogleAuthProviderService,
     JwtAuthGuard,

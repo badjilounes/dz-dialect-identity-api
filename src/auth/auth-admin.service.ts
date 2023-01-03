@@ -1,22 +1,20 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { AuthSignInDto } from './dto/auth-sign-in-dto';
-import { AuthSignUpDto } from './dto/auth-sign-up-dto';
 import { AuthTokenResponseDto } from './dto/auth-sign-up-response-dto';
 import { AuthProvider, UserProviderInformation } from './providers/auth-provider';
 import { GoogleAuthProviderService } from './providers/google/google-auth-provider.service';
 import { ProvidersEnum } from './providers/providers.enum';
 import { TwitterAuthClientService } from './providers/twitter/twitter-auth-provider.service';
 
-import { UserInformation } from 'src/users/user-information';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
-export class AuthService {
-  private readonly appCallbackURL = this.configService.get('APP_CALLBACK_URL');
-  private readonly appSignInURL = this.configService.get('APP_SIGN_IN_URL');
+export class AuthAdminService {
+  private readonly adminAppCallbackURL = this.configService.get('ADMIN_APP_CALLBACK_URL');
+  private readonly adminAppSignInURL = this.configService.get('ADMIN_APP_SIGN_IN_URL');
 
   private readonly providers: Map<ProvidersEnum, AuthProvider> = new Map<ProvidersEnum, AuthProvider>([
     [ProvidersEnum.Twitter, this.twitterAuthClient],
@@ -32,25 +30,28 @@ export class AuthService {
   ) {}
 
   getAuthorizeURL(providerName: string) {
-    return this.resolveProviderFromName(providerName).authorizeUrl;
+    return this.resolveProviderFromName(providerName).adminAuthorizeUrl;
   }
 
   async getRedirectURIFromCode(providerName: string, code?: string, error?: string) {
     if (error) {
-      return this.appSignInURL;
+      return this.adminAppSignInURL;
     }
 
     const provider = this.resolveProviderFromName(providerName);
+    const userFromProvider: UserProviderInformation = await provider.getAdminUserInformation(code);
 
-    const userFromProvider: UserProviderInformation = await provider.getUserInformation(code);
-    const user = await this.usersService.createUser(
+    const existingUserExternal = await this.usersService.checkExternalUser(
       providerName as ProvidersEnum,
-      userFromProvider.information,
       userFromProvider.id,
     );
 
-    const accessToken = this.jwtService.sign({ id: user.id });
-    return `${this.appCallbackURL}?access_token=${accessToken}`;
+    if (!existingUserExternal || !existingUserExternal.isAdmin) {
+      return `${this.adminAppSignInURL}?error=Vous n'avez pas les droits d'administration`;
+    }
+
+    const accessToken = this.jwtService.sign({ id: existingUserExternal.id });
+    return `${this.adminAppCallbackURL}?access_token=${accessToken}`;
   }
 
   async signIn(user: AuthSignInDto): Promise<AuthTokenResponseDto> {
@@ -60,21 +61,12 @@ export class AuthService {
       throw new UnauthorizedException('Nom de compte ou mot de passe invalide');
     }
 
-    return {
-      token: this.jwtService.sign({ id: found.id }),
-    };
-  }
-
-  async signUp(user: AuthSignUpDto): Promise<AuthTokenResponseDto> {
-    const usernameExists = await this.usersService.usernameExists(user.username);
-    if (usernameExists) {
-      throw new ConflictException('Ce nom de compte existe déjà');
+    if (!found.isAdmin) {
+      throw new UnauthorizedException("Vous n'avez pas les droits d'administration");
     }
 
-    const information: UserInformation = { username: user.username, password: user.password };
-    const created = await this.usersService.createUser(ProvidersEnum.Basic, information);
     return {
-      token: this.jwtService.sign({ id: created.id }),
+      token: this.jwtService.sign({ id: found.id }),
     };
   }
 

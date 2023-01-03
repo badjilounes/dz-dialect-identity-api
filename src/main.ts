@@ -1,3 +1,4 @@
+import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -7,7 +8,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({ origin: app.get(ConfigService).get('CORS_ORIGIN') });
+  app.enableCors({ origin: buildCorsOrigin(app) });
 
   const swaggerOptions = new DocumentBuilder()
     .setTitle('DzDialect Identity API')
@@ -29,4 +30,13 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT || 3000);
 }
+
+function buildCorsOrigin(app: INestApplication): string[] {
+  try {
+    return JSON.parse(app.get(ConfigService).get('CORS_ORIGIN'));
+  } catch {
+    return [app.get(ConfigService).get('CORS_ORIGIN')];
+  }
+}
+
 bootstrap();

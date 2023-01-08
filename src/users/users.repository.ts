@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compareSync, hashSync } from 'bcrypt';
-import { Not, Repository } from 'typeorm';
+import { FindManyOptions, Not, Repository } from 'typeorm';
 
 import { UserExternalEntity } from './entities/user-external.entity';
 import { UserEntity } from './entities/user.entity';
@@ -30,11 +30,8 @@ export class UsersRepository {
     return this.userRepository.save({ username, userExternal });
   }
 
-  paginate(skip: number, take: number): Promise<[UserEntity[], number]> {
-    return this.userRepository.findAndCount({
-      skip,
-      take,
-    });
+  paginate(options: FindManyOptions<UserEntity>): Promise<[UserEntity[], number]> {
+    return this.userRepository.findAndCount(options);
   }
 
   findOneByEmail(email: string): Promise<UserEntity | null> {

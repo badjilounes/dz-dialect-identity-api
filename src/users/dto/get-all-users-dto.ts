@@ -6,4 +6,7 @@ export class GetAllUsersDto {
 
   @ApiProperty()
   pageSize: number;
+
+  @ApiProperty()
+  query: string;
 }

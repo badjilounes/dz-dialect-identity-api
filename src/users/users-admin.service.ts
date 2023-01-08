@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { FindManyOptions, ILike } from 'typeorm';
 
 import { UserResponseDto } from './dto/user-response-dto';
 import { UserEntity } from './entities/user.entity';
@@ -11,8 +12,21 @@ import { PaginatedUserResponseDto } from 'src/users/dto/paginated-user-response-
 export class UsersAdminService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getAll(pageIndex: number, pageSize: number): Promise<PaginatedUserResponseDto> {
-    const [entities, length] = await this.usersRepository.paginate(pageIndex * pageSize, pageSize);
+  async getAll(pageIndex: number, pageSize: number, query: string): Promise<PaginatedUserResponseDto> {
+    const options: FindManyOptions<UserEntity> = {
+      skip: pageIndex * pageSize,
+      take: pageSize,
+    };
+
+    if (query) {
+      options.where = [
+        { email: ILike(`%${query}%`) },
+        { username: ILike(`%${query}%`) },
+        { name: ILike(`%${query}%`) },
+      ];
+    }
+
+    const [entities, length] = await this.usersRepository.paginate(options);
 
     return {
       elements: entities.map((user) => this.getUserResponseDtoFromUser(user)),

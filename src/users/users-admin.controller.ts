@@ -30,7 +30,7 @@ export class UsersAdminController {
   @Get()
   @ApiOkResponse({ type: PaginatedUserResponseDto })
   getAll(@Query() payload: GetAllUsersDto): Promise<PaginatedUserResponseDto> {
-    return this.usersAdminService.getAll(+payload.pageIndex, +payload.pageSize);
+    return this.usersAdminService.getAll(+payload.pageIndex, +payload.pageSize, payload.query);
   }
 
   @UseGuards(AdminGuard)
